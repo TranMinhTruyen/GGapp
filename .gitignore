@@ -20,6 +20,7 @@
 *.rar
 *.classpath
 .idea
+.mvn
 target
 mvnw.cmd
 SpringBootAndMongoBD.iml
