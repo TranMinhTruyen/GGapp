@@ -56,10 +56,19 @@ public class ProductServicesImplement implements ProductServices {
 	private ProductImageRepository productImageRepository;
 
 	@Override
-	public ProductResponse createProduct(ProductRequest productRequest){
+	public ProductResponse createProduct(ProductRequest productRequest) throws Exception {
 		Optional<Brand> brand = brandRepository.findById(productRequest.getId_brand());
 		Optional<Category> category = categoryRepository.findById(productRequest.getId_category());
-		if (productRequest != null && !isExists(productRequest.getName()) && brand.isPresent() && category.isPresent()){
+		if (isExists(productRequest.getName())) {
+			throw new Exception("Product is exists");
+		}
+		if (!brand.isPresent()) {
+			throw new Exception("Brand not exists");
+		}
+		if (!category.isPresent()) {
+			throw new Exception("Category not exists");
+		}
+		if (productRequest != null){
 			Product newProduct = new Product();
 			newProduct.setName(productRequest.getName());
 			newProduct.setPrice(productRequest.getPrice());
@@ -71,10 +80,12 @@ public class ProductServicesImplement implements ProductServices {
 			newProduct.setDayCreated(new Date());
 			newProduct.setNew(true);
 			Product result = productRepository.save(newProduct);
-			addOrUpdateProductImage(result.getId(), productRequest.getImage(), false);
-			return getProductAfterUpdateOrCreate(result);
+			if (result != null) {
+				addOrUpdateProductImage(result.getId(), productRequest.getImage(), false);
+				return getProductAfterUpdateOrCreate(result);
+			} else throw new Exception("Error while create product");
 		}
-		else return null;
+		else throw new Exception("Request is null");
 	}
 
 	private void addOrUpdateProductImage (int productId, List<ProductImageRequest> productImageList, boolean update) {

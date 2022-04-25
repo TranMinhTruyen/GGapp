@@ -28,9 +28,7 @@ public class CommonResponse implements Serializable {
 	private int size;
 	private int totalPage;
 
-	public CommonResponse() {
-	}
-
+	public CommonResponse() {}
 	public CommonResponse getCommonResponse(int page, int size, List result){
 		int offset = (page - 1) * size;
 		int total = result.size();

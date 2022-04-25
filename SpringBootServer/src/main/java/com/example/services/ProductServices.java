@@ -11,7 +11,7 @@ import java.util.List;
  * @author Tran Minh Truyen
  */
 public interface ProductServices {
-	ProductResponse createProduct(ProductRequest productRequest);
+	ProductResponse createProduct(ProductRequest productRequest) throws Exception;
 	CommonResponse getAllProduct(int page, int size);
 	CommonResponse getProductByKeyWord(int page, int size,
 									   @Nullable String name,

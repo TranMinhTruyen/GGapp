@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * @author Tran Minh Truyen
  */
-
 @SpringBootApplication
 public class Server {
     public static void main(String... args) {
