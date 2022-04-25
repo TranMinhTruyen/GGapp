@@ -56,13 +56,19 @@ public class UserController {
     public BaseResponse sendConfirmKey(@RequestBody CheckEmailRequest checkEmailRequest) {
         BaseResponse baseResponse = new BaseResponse();
         if (checkEmailRequest != null && !userServices.emailIsExists(checkEmailRequest.getEmail())){
-            String key = RandomStringUtils.randomAlphanumeric(10).toUpperCase();
-            String mess = userServices.sendEmailConfirmKey(checkEmailRequest.getEmail(), key);
-            baseResponse.setStatusCode(HttpStatus.OK.value());
-            baseResponse.setStatusName(HttpStatus.OK.name());
-            baseResponse.setMessage("Email has been sent");
-            baseResponse.setPayload(mess);
-            return baseResponse;
+            try {
+                String key = RandomStringUtils.randomAlphanumeric(10).toUpperCase();
+                userServices.sendEmailConfirmKey(checkEmailRequest.getEmail(), key);
+                baseResponse.setStatusCode(HttpStatus.OK.value());
+                baseResponse.setStatusName(HttpStatus.OK.name());
+                baseResponse.setMessage("Email has been sent");
+                return baseResponse;
+            } catch (Exception exception) {
+                baseResponse.setStatusCode(HttpStatus.FORBIDDEN.value());
+                baseResponse.setStatusName(HttpStatus.FORBIDDEN.name());
+                baseResponse.setMessage(exception.getMessage());
+                return baseResponse;
+            }
         }
         else {
             baseResponse.setStatusCode(HttpStatus.NOT_FOUND.value());

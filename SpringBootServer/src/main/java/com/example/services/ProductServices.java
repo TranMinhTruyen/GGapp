@@ -12,13 +12,14 @@ import java.util.List;
  */
 public interface ProductServices {
 	ProductResponse createProduct(ProductRequest productRequest) throws Exception;
-	CommonResponse getAllProduct(int page, int size);
+	CommonResponse getAllProduct(int page, int size) throws Exception;
 	CommonResponse getProductByKeyWord(int page, int size,
 									   @Nullable String name,
 									   @Nullable String brand,
 									   @Nullable String category,
-									   float price);
-	ProductResponse updateProduct(int id, ProductRequest productRequest);
+									   float fromPrice,
+									   float toPrice) throws Exception;
+	ProductResponse updateProduct(int id, ProductRequest productRequest) throws Exception;
 	boolean deleteProduct(List<Integer> id);
 	boolean deleteImageOfProduct(int productId, List<Integer> imageId);
 	boolean isExists(String productName);

@@ -68,24 +68,21 @@ public class ProductServicesImplement implements ProductServices {
 		if (!category.isPresent()) {
 			throw new Exception("Category not exists");
 		}
-		if (productRequest != null){
-			Product newProduct = new Product();
-			newProduct.setName(productRequest.getName());
-			newProduct.setPrice(productRequest.getPrice());
-			newProduct.setType(productRequest.getType());
-			newProduct.setDiscount(productRequest.getDiscount());
-			newProduct.setBrand(brand.get());
-			newProduct.setCategory(category.get());
-			newProduct.setInStock(productRequest.getUnitInStock());
-			newProduct.setDayCreated(new Date());
-			newProduct.setNew(true);
-			Product result = productRepository.save(newProduct);
-			if (result != null) {
-				addOrUpdateProductImage(result.getId(), productRequest.getImage(), false);
-				return getProductAfterUpdateOrCreate(result);
-			} else throw new Exception("Error while create product");
-		}
-		else throw new Exception("Request is null");
+		Product newProduct = new Product();
+		newProduct.setName(productRequest.getName());
+		newProduct.setPrice(productRequest.getPrice());
+		newProduct.setType(productRequest.getType());
+		newProduct.setDiscount(productRequest.getDiscount());
+		newProduct.setBrand(brand.get());
+		newProduct.setCategory(category.get());
+		newProduct.setInStock(productRequest.getUnitInStock());
+		newProduct.setDayCreated(new Date());
+		newProduct.setNew(true);
+		Product result = productRepository.save(newProduct);
+		if (result != null) {
+			addOrUpdateProductImage(result.getId(), productRequest.getImage(), false);
+			return getProductAfterUpdateOrCreate(result);
+		} else throw new Exception("Error while create product");
 	}
 
 	private void addOrUpdateProductImage (int productId, List<ProductImageRequest> productImageList, boolean update) {
@@ -142,7 +139,7 @@ public class ProductServicesImplement implements ProductServices {
 	}
 
 	@Override
-	public CommonResponse getAllProduct(int page, int size) {
+	public CommonResponse getAllProduct(int page, int size) throws Exception {
 		List<Product> productList = productRepository.findAll();
 		List<ProductResponse> result = new ArrayList<>();
 		productList.stream().forEach(items -> {
@@ -159,23 +156,24 @@ public class ProductServicesImplement implements ProductServices {
 			productResponse.setImage(getProductImage(items.getId()));
 			result.add(productResponse);
 		});
-		if (!result.isEmpty()){
+		if (!result.isEmpty() && result != null){
 			return new CommonResponse().getCommonResponse(page, size, result);
 		}
-		else return null;
+		else throw new Exception("Product not found");
 	}
 
 	@Override
-	public CommonResponse getProductByKeyWord(int page, int size, String name, String brand, String category, float price) {
-		List<ProductResponse> productResponseList = filterProduct(name, brand, category, price);
-		if (productResponseList != null){
+	public CommonResponse getProductByKeyWord(int page, int size, String name, String brand,
+											  String category, float fromPrice, float toPrice) throws Exception {
+		List<ProductResponse> productResponseList = filterProduct(name, brand, category, fromPrice, toPrice);
+		if (productResponseList != null && !productResponseList.isEmpty()){
 			return new CommonResponse().getCommonResponse(page, size, productResponseList);
 		}
 		else return getAllProduct(page, size);
 	}
 
 	@Override
-	public ProductResponse updateProduct(int id, ProductRequest productRequest) {
+	public ProductResponse updateProduct(int id, ProductRequest productRequest) throws Exception {
 		Optional<Product> product = productRepository.findById(id);
 		if (product.isPresent()){
 			Product update = product.get();
@@ -198,9 +196,8 @@ public class ProductServicesImplement implements ProductServices {
 			updateProductFromCart(id, update);
 			if (result != null)
 				return getProductAfterUpdateOrCreate(result);
-			else return null;
-		}
-		return null;
+			else throw new Exception("Error while update product");
+		} else throw new Exception("Not found product");
 	}
 
 	@Override
@@ -284,7 +281,7 @@ public class ProductServicesImplement implements ProductServices {
 
 	@Override
 	public boolean isExists(String name) {
-		return !productRepository.findAll(new ProductSpecification(name)).isEmpty();
+		return !productRepository.findAllByNameEqualsIgnoreCase(name).isEmpty();
 	}
 
 	public ProductResponse getProductAfterUpdateOrCreate(Product product){
@@ -305,11 +302,12 @@ public class ProductServicesImplement implements ProductServices {
 	private List<ProductResponse> filterProduct(@Nullable String name,
 												@Nullable String brand,
 												@Nullable String category,
-												float price){
+												float fromPrice,
+												float toPrice){
 		List<Product> productList = productRepository.findAll();
 		List<Product> filter = new ArrayList();
 		List<ProductResponse> productResponseList = new ArrayList();
-		if (name != null && price == 0){
+		if (name != null && fromPrice == 0 && toPrice == 0){
 			productList.stream().forEach(items -> {
 				if (items.getName().toLowerCase().contains(name.toLowerCase())){
 					filter.add(items);
@@ -317,7 +315,7 @@ public class ProductServicesImplement implements ProductServices {
 			});
 		}
 
-		if (category == null && brand != null && price == 0){
+		if (category == null && brand != null && fromPrice == 0 && toPrice == 0){
 			productList.stream().forEach(items -> {
 				if (items.getBrand().getName().toLowerCase().contains(brand.toLowerCase())){
 					filter.add(items);
@@ -325,7 +323,7 @@ public class ProductServicesImplement implements ProductServices {
 			});
 		}
 
-		if (brand == null && category != null && price == 0){
+		if (brand == null && category != null && fromPrice == 0 && toPrice == 0){
 			productList.stream().forEach(items -> {
 				if (items.getCategory().getName().toLowerCase().contains(category.toLowerCase())){
 					filter.add(items);
@@ -333,40 +331,43 @@ public class ProductServicesImplement implements ProductServices {
 			});
 		}
 
-		if (price != 0 && brand == null && category == null){
+		if (fromPrice != 0 && toPrice != 0 && brand == null && category == null){
 			productList.stream().forEach(items -> {
-				if (items.getPrice() <= price){
+				if (items.getPrice() <= toPrice && items.getPrice() >= fromPrice){
 					filter.add(items);
 				}
 			});
 		}
 
-		if (price != 0 && brand != null && category == null){
+		if (fromPrice != 0 && toPrice != 0 && brand != null && category == null){
 			productList.stream().forEach(items -> {
-				if (items.getPrice() <= price && items.getBrand().getName().toLowerCase().contains(brand.toLowerCase())){
+				if (items.getPrice() >= fromPrice && items.getPrice() <= toPrice &&
+						items.getBrand().getName().toLowerCase().contains(brand.toLowerCase())){
 					filter.add(items);
 				}
 			});
 		}
 
-		if (price != 0 && brand == null && category != null){
+		if (fromPrice != 0 && toPrice != 0 && brand == null && category != null){
 			productList.stream().forEach(items -> {
-				if (items.getPrice() <= price && items.getCategory().getName().toLowerCase().contains(category.toLowerCase())){
+				if (items.getPrice() >= fromPrice && items.getPrice() <= toPrice &&
+						items.getCategory().getName().toLowerCase().contains(category.toLowerCase())){
 					filter.add(items);
 				}
 			});
 		}
 
-		if (price != 0 && brand != null && category != null){
+		if (fromPrice != 0 && toPrice != 0 && brand != null && category != null){
 			productList.stream().forEach(items -> {
-				if (items.getPrice() <= price && items.getBrand().getName().toLowerCase().contains(brand.toLowerCase())
-						&& items.getCategory().getName().toLowerCase().contains(category.toLowerCase())){
+				if (items.getPrice() >= fromPrice && items.getPrice() <= toPrice &&
+						items.getBrand().getName().toLowerCase().contains(brand.toLowerCase()) &&
+						items.getCategory().getName().toLowerCase().contains(category.toLowerCase())){
 					filter.add(items);
 				}
 			});
 		}
 
-		if (brand != null && category != null && price == 0){
+		if (brand != null && category != null && fromPrice == 0 && toPrice == 0){
 			productList.stream().forEach(items -> {
 				if (items.getBrand().getName().toLowerCase().equals(brand.toLowerCase()) &&
 						items.getCategory().getName().toLowerCase().equals(category.toLowerCase())){

@@ -241,7 +241,7 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
     }
 
     @Override
-    public String sendEmailConfirmKey(String email, String confirmKey) {
+    public void sendEmailConfirmKey(String email, String confirmKey) throws Exception {
         try {
             ConfirmKey newConfirmKey = new ConfirmKey();
             newConfirmKey.setEmail(email);
@@ -262,9 +262,8 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             emailSender.send(mailMessage);
         } catch (MailException e) {
             confirmKeyRepository.deleteByEmail(email);
-            return e.getMessage();
+            throw new Exception(e.getMessage());
         }
-        return "Mail has been sent, please check your email";
     }
 
     @Override
