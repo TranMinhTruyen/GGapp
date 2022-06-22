@@ -3,6 +3,7 @@ package com.example.common.request;
 import lombok.Data;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**

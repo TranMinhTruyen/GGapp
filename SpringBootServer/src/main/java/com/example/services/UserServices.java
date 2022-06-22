@@ -17,7 +17,7 @@ public interface UserServices {
 	User login(LoginRequest loginRequest) throws Exception;
 	User resetPassword(String email) throws Exception;
 	UserResponse getProfileUser(int id) throws Exception;
-	String sendEmailConfirmKey(String email, String confirmKey);
+	void sendEmailConfirmKey(String email, String confirmKey) throws Exception;
 	boolean checkConfirmKey(String email, String key);
 	UserResponse updateUser(int id, UserRequest request) throws Exception;
 	boolean deleteUser(int id) throws Exception;

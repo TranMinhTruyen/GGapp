@@ -19,6 +19,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, JpaS
 	List<Product> findAllByBrandId(int id);
 	List<Product> findAllByCategoryId(int id);
 
+	List<Product> findAllByNameEqualsIgnoreCase(String name);
+
 	@Query("select p from Product p where p.isNew = true")
 	List<Product> findAllByNewIsTrue();
 }
